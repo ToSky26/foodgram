@@ -1,44 +1,20 @@
+from api.filters import IngredientFilter, RecipeFilter
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers.recipe_serializers import (IngredientSerializer,
+                                                RecipeReadSerializer,
+                                                RecipeShortSerializer,
+                                                RecipeWriteSerializer,
+                                                TagSerializer)
+from api.utils import generate_shopping_list
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.viewsets import (
-    ModelViewSet,
-    ReadOnlyModelViewSet,
-)
-
-from recipes.models import (
-    Favorite,
-    Ingredient,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
-
-from api.filters import (
-    IngredientFilter,
-    RecipeFilter,
-)
-
-from api.permissions import (
-    IsAuthorOrReadOnly,
-)
-
-from api.serializers.recipe_serializers import (
-    IngredientSerializer,
-    RecipeReadSerializer,
-    RecipeShortSerializer,
-    RecipeWriteSerializer,
-    TagSerializer,
-)
-
-from api.utils import generate_shopping_list
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 
 class TagViewSet(ReadOnlyModelViewSet):

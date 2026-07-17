@@ -1,14 +1,12 @@
+from api.serializers.recipe_serializers import UserWithRecipesSerializer
 from django.shortcuts import get_object_or_404
-
 from djoser.views import UserViewSet
-
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.serializers.recipe_serializers import UserWithRecipesSerializer
-from .models import User, Subscription
+from .models import Subscription, User
 from .serializers import AvatarSerializer
 
 

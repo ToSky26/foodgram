@@ -1,24 +1,16 @@
+from api.filters import RecipeFilter
+from api.permissions import IsAuthorOrReadOnly
 from django.shortcuts import get_object_or_404
-
+from recipes.models import Favorite, Recipe, ShoppingCart
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from recipes.models import (
-    Favorite,
-    Recipe,
-    ShoppingCart,
-)
-
-from api.permissions import IsAuthorOrReadOnly
-from api.filters import RecipeFilter
-from backend.api.serializers.recipe_serializers import (
-    RecipeReadSerializer,
-    RecipeShortSerializer,
-    RecipeWriteSerializer,
-)
+from backend.api.serializers.recipe_serializers import (RecipeReadSerializer,
+                                                        RecipeShortSerializer,
+                                                        RecipeWriteSerializer)
 
 
 class RecipeViewSet(ModelViewSet):

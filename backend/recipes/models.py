@@ -1,11 +1,7 @@
 from django.db import models
-
 from users.models import User
 
-from .validators import (
-    validate_amount,
-    validate_cooking_time,
-)
+from .validators import validate_amount, validate_cooking_time
 
 
 class Tag(models.Model):
