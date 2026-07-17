@@ -1,0 +1,1 @@
+from drf_extra_fields.fields import Base64ImageField
