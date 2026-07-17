@@ -8,3 +8,4 @@ os.environ.setdefault(
 )
 
 application = get_asgi_application()
+
