@@ -2,10 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+RUN pip install gunicorn==23.0.0
+
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt --no-cache-dir
 
 COPY . .
 
-CMD ["gunicorn", "foodgram.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backend.wsgi"]

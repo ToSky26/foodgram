@@ -116,13 +116,11 @@ USE_I18N = True
 USE_TZ = True
 
 
-STATIC_URL = '/static_backend/'
-
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static' / 'static'
 
 
 MEDIA_URL = '/media/'
-
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
@@ -165,8 +163,3 @@ DJOSER = {
 
     'HIDE_USERS': False,
 }
-
-
-EMAIL_BACKEND = (
-    'django.core.mail.backends.console.EmailBackend'
-)
