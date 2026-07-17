@@ -29,8 +29,9 @@ services:
     image: tosky26/foodgram_frontend:latest
     restart: always
     env_file: .env
+    command: sh -c "cp -r /app/build/. /static/ && tail -f /dev/null"
     volumes:
-      - ../frontend/build:/app/result_build/
+      - static_volume:/static/
 
   nginx:
     image: tosky26/foodgram_nginx:latest
@@ -46,4 +47,4 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_volume:/static/
       - media_volume:/media/
-      
+
