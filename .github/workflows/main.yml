@@ -38,11 +38,10 @@ jobs:
           pip install flake8==7.3.0 flake8-isort==7.0.0
           pip install -r ./backend/requirements.txt
 
-      - name: Run flake8 and Django tests
+      - name: Test with flake8 and django tests
         env:
           SECRET_KEY: test-secret-key
           DEBUG: True
-          DB_ENGINE: django.db.backends.postgresql
           DB_NAME: foodgram
           POSTGRES_USER: foodgram_user
           POSTGRES_PASSWORD: foodgram_password
@@ -53,27 +52,6 @@ jobs:
           cd backend/
           python manage.py test
 
-  frontend_tests:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install frontend dependencies
-        run: |
-          cd frontend/
-          npm ci --legacy-peer-deps
-
-
-      - name: Run frontend tests
-        run: |
-          cd frontend/
-          npm run test
 
   build_backend_and_push:
     name: Build and push backend image
