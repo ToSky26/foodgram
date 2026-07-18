@@ -92,6 +92,7 @@ class FoodgramUserViewSet(UserViewSet):
     @action(
         detail=False,
         methods=['put'],
+        url_path='me/avatar',
         permission_classes=[IsAuthenticated]
     )
     def avatar(self, request):
@@ -99,11 +100,9 @@ class FoodgramUserViewSet(UserViewSet):
             request.user,
             data=request.data
         )
-
         serializer.is_valid(
             raise_exception=True
         )
-
         serializer.save()
 
         return Response(serializer.data)
@@ -111,7 +110,6 @@ class FoodgramUserViewSet(UserViewSet):
     @avatar.mapping.delete
     def delete_avatar(self, request):
         request.user.avatar.delete()
-
         request.user.save()
 
         return Response(
