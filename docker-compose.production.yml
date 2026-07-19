@@ -35,7 +35,7 @@ services:
       - backend
       - frontend
     container_name: foodgram-proxy
-    image: tosky26/foodgram_nginx:latest
+    image: tosky26/foodgram_gateway:latest
     ports:
       - "80:80"
     volumes:
