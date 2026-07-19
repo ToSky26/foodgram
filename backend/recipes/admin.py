@@ -1,98 +1,63 @@
 from django.contrib import admin
+from django.db.models import Count
 
-from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
-
-
-class RecipeIngredientInline(
-    admin.TabularInline
-):
-    model = RecipeIngredient
-    extra = 1
-
-
-@admin.register(Recipe)
-class RecipeAdmin(
-    admin.ModelAdmin
-):
-    list_display = (
-        'id',
-        'name',
-        'author',
-        'favorites_count',
-    )
-
-    search_fields = (
-        'name',
-    )
-
-    list_filter = (
-        'author',
-        'tags',
-    )
-
-    inlines = (
-        RecipeIngredientInline,
-    )
-
-    @admin.display(
-        description='В избранном'
-    )
-    def favorites_count(
-        self,
-        obj
-    ):
-        return obj.favorited_by.count()
-
-
-@admin.register(Tag)
-class TagAdmin(
-    admin.ModelAdmin
-):
-    list_display = (
-        'id',
-        'name',
-        'slug',
-    )
-
-    search_fields = (
-        'name',
-        'slug',
-    )
-
+from .models import Recipe, Tag, Ingredient, RecipeIngredient
 
 @admin.register(Ingredient)
-class IngredientAdmin(
-    admin.ModelAdmin
-):
-    list_display = (
-        'id',
-        'name',
-        'measurement_unit',
-    )
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'measurement_unit', 'recipe_count')
+    search_fields = ('name',)
+    readonly_fields = ('recipe_count',)
 
-    search_fields = (
-        'name',
-    )
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            recipe_count=Count('recipes')
+        )
+
+    @admin.display(description='Рецептов c этим ингредиентом')
+    def recipe_count(self, obj):
+        return obj.recipe_count
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'recipe_count')
+    search_fields = ('name',)
+    readonly_fields = ('recipe_count',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            recipe_count=Count('recipes')
+        )
+
+    @admin.display(description='Рецептов с этим тегом')
+    def recipe_count(self, obj):
+        return obj.recipe_count
 
 
-@admin.register(Favorite)
-class FavoriteAdmin(
-    admin.ModelAdmin
-):
-    list_display = (
-        'id',
-        'user',
-        'recipe',
-    )
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+    autocomplete_fields = ('ingredient',)
+    extra = 1
+    min_num = 1
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    inlines = (RecipeIngredientInline,)
+    list_display = ('name', 'author__first_name')
+    search_fields = ('name', 'author__first_name',
+                     'author__last_name', 'author__username')
+    list_filter = ('tags',)
+
+    readonly_fields = ('favorites_count',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            favorites_count=Count('favorited_by')
+        )
+
+    @admin.display(description='В избранном у')
+    def favorites_count(self, obj):
+        return obj.favorites.count
 
 
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(
-    admin.ModelAdmin
-):
-    list_display = (
-        'id',
-        'user',
-        'recipe',
-    )
+admin.site.register(RecipeIngredient)
