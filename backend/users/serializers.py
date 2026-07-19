@@ -56,4 +56,3 @@ class AvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['avatar', ]
-
