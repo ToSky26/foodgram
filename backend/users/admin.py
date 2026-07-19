@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
             recipe_count=Count('recipes')
         )
 
-    @admin.display(description='Написал рецептов')
+    @admin.display(description='Создал рецептов')
     def recipe_count(self, obj):
         return obj.recipe_count
 

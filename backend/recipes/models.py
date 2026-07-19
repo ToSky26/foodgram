@@ -16,7 +16,6 @@ from .constants import (
 
 
 class Tag(models.Model):
-    """Модель тегов."""
     name = models.CharField(
         unique=True, 
         max_length=TAG_NAME_SLUG_LENGTH,
@@ -38,7 +37,6 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель ингредиентов."""
     name = models.CharField(
         max_length=INGREDIENT_NAME_LENGTH,
         verbose_name='Имя ингредиента'
@@ -64,7 +62,6 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """Модель рецептов."""
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
@@ -114,7 +111,6 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
-    # Сохранение короткой ссылки на уровне модели.
     def save(self, *args, **kwargs):
         if not self.short_link:
             while True:
@@ -126,7 +122,6 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """Промежуточная модель для M:M связи между рецептом и ингредиентами"""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,

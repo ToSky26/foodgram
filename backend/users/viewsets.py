@@ -9,7 +9,6 @@ from .serializers import AvatarSerializer
 
 
 class UserViewSet(DjoserUserViewSet):
-    """Вьюсет для модели пользователя."""
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:

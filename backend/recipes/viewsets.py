@@ -21,7 +21,6 @@ from .serializers import (
 
 
 class RecipeViewSet(ModelViewSet):
-    """Общий вьюсет для работы с рецептами."""
 
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
@@ -139,7 +138,6 @@ class RecipeViewSet(ModelViewSet):
 
 
 class TagViewSet(ReadOnlyModelViewSet):
-    """Вьюсет для чтения тегов."""
     serializer_class = TagSerializer
     pagination_class = None
     queryset = Tag.objects.all()
@@ -147,7 +145,6 @@ class TagViewSet(ReadOnlyModelViewSet):
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
-    """Вьюсет для чтения ингредиентов"""
     serializer_class = IngredientSerializer
     pagination_class = None
     queryset = Ingredient.objects.all()

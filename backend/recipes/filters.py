@@ -4,9 +4,6 @@ from .models import Recipe, Tag, Ingredient
 
 
 class RecipeFilter(FilterSet):
-    """Кастомный фильтр для рецептов."""
-
-    # Чтобы можно было фильтровать сразу по нескольким тегам.
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
@@ -33,8 +30,6 @@ class RecipeFilter(FilterSet):
 
 
 class IngredientFilter(FilterSet):
-    """Кастомный двойной фильтр для ингредиентов"""
-
     name = filters.CharFilter(method='filter_name')
 
     def filter_name(self, queryset, name, value):

@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.serializers import RecipeShortSerializer
 
 User = get_user_model()
 
@@ -29,6 +28,7 @@ class UserExtendedSerializer(UserSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes(self, obj):
+        from recipes.serializers import RecipeShortSerializer
         request = self.context.get('request')
         queryset = obj.recipes.all()
         if request:

@@ -18,7 +18,6 @@ from .constants import (
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения тегов."""
 
     class Meta:
         model = Tag
@@ -26,7 +25,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения ингредиентов."""
 
     class Meta:
         model = Ingredient
@@ -34,7 +32,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для промежуточной модели рецепт/ингредиент."""
 
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
@@ -51,7 +48,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания рецепта."""
 
     ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
@@ -83,7 +79,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             seen.add(value)
 
     def validate(self, data):
-        # Проверка, все поля заполнены и отправлены
         required_fields = [
             'tags',
             'ingredients',
@@ -102,7 +97,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     field: 'Поле не может быть пустым'
                 })
 
-        # Проверка, что ингредиенты и теги в рецепте не повторяются
         self.validate_unique_items(data['ingredients'], 'ingredients', 'id')
         self.validate_unique_items(data['tags'], 'tags')
         return data
@@ -145,7 +139,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения рецепта."""
     tags = TagSerializer(many=True)
     author = UserSerializer()
     ingredients = RecipeIngredientSerializer(
@@ -166,7 +159,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
-    """Сериализатор для короткого отображения рецептов."""
 
     image = serializers.SerializerMethodField()
 
