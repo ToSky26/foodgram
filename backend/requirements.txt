@@ -5,7 +5,7 @@ charset-normalizer==3.4.7
 cryptography==46.0.7
 defusedxml==0.7.1
 Django==4.2.23
-django-filter==25.2
+django-filter==24.3
 djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
 djoser==2.3.3
