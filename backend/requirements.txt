@@ -23,8 +23,8 @@ pytest-django==4.9.0
 pytest-pythonpath==0.7.3
 requests==2.33.1
 requests-oauthlib==2.0.0
-social-auth-app-django==5.7.0
-social-auth-core==4.8.5
+social-auth-app-django==5.4.3
+social-auth-core==4.8.1
 sqlparse==0.5.5
 tzdata==2026.1
 urllib3==2.6.3
