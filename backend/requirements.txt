@@ -16,6 +16,7 @@ oauthlib==3.3.1
 pillow==12.2.0
 pycparser==3.0
 PyJWT==2.12.1
+python-dotenv
 python3-openid==3.2.0
 pytest==8.3.3
 pytest-django==4.9.0
