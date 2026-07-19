@@ -3,6 +3,7 @@ from django.db.models import Count
 
 from .models import Recipe, Tag, Ingredient, RecipeIngredient
 
+
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit', 'recipe_count')
@@ -17,6 +18,7 @@ class IngredientAdmin(admin.ModelAdmin):
     @admin.display(description='Рецептов c этим ингредиентом')
     def recipe_count(self, obj):
         return obj.recipe_count
+
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -40,12 +42,13 @@ class RecipeIngredientInline(admin.TabularInline):
     extra = 1
     min_num = 1
 
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
-    list_display = ('name', 'author__first_name')
-    search_fields = ('name', 'author__first_name',
-                     'author__last_name', 'author__username')
+    list_display = ('name', 'author')
+    search_fields = ('name', 'author_first_name',
+                     'author_last_name', 'author_username')
     list_filter = ('tags',)
 
     readonly_fields = ('favorites_count',)
@@ -57,7 +60,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='В избранном у')
     def favorites_count(self, obj):
-        return obj.favorites.count
+        return obj.favorited_by.count
 
 
 admin.site.register(RecipeIngredient)
