@@ -95,11 +95,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd foodgram
-            sudo docker compose -f docker-compose.foodgram.yml pull
-            sudo docker compose -f docker-compose.foodgram.yml down
-            sudo docker compose -f docker-compose.foodgram.yml up -d
-            sudo docker compose -f docker-compose.foodgram.yml exec backend python manage.py migrate --noinput
-            sudo docker compose -f docker-compose.foodgram.yml exec backend python manage.py collectstatic --noinput
+            sudo docker compose -f docker-compose.production.yml pull
+            sudo docker compose -f docker-compose.production.yml down
+            sudo docker compose -f docker-compose.production.yml up -d
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate --noinput
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
             sudo docker image prune -a -f
 
   send_message:
