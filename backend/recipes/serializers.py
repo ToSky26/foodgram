@@ -6,16 +6,6 @@ from rest_framework import serializers
 from .models import Tag, Recipe, RecipeIngredient, Ingredient
 from users.serializers import UserSerializer
 
-from .constants import (
-    RECIPE_NAME_LENGTH,
-    TAG_NAME_SLUG_LENGTH,
-    INGREDIENT_NAME_LENGTH,
-    INGREDIENT_MEASUREMENT_LENGTH,
-    SHORTLINK_LENGTH,
-    MINIMUM_RECIPE_COOKING_TIME,
-    MINIMUM_INGREDIENT_AMOUNT,
-)
-
 
 class TagSerializer(serializers.ModelSerializer):
 

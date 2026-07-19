@@ -17,7 +17,7 @@ from .constants import (
 
 class Tag(models.Model):
     name = models.CharField(
-        unique=True, 
+        unique=True,
         max_length=TAG_NAME_SLUG_LENGTH,
         verbose_name='Имя тега'
     )
