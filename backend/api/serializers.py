@@ -135,7 +135,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         required_fields = ['tags', 'ingredients', 'name',
-                           'text', 'cooking_time',]
+                           'text', 'cooking_time', ]
 
         for field in required_fields:
             if field not in data:
