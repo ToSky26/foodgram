@@ -1,14 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from recipes.viewsets import RecipeViewSet, TagViewSet, IngredientViewSet
+from .views import short_link_redirect
 
-
-router = DefaultRouter()
-router.register('recipes', RecipeViewSet, basename='recipes')
-router.register('tags', TagViewSet, basename='tags')
-router.register('ingredients', IngredientViewSet, basename='ingredient')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('s/<str:short_link>/', short_link_redirect, name='short-link'),
 ]
