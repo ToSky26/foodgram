@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe 
+from django.utils.safestring import mark_safe
 
 from .constants import TIME_RANGES
 from .models import (Recipe, Tag, Ingredient, RecipeIngredient, ShoppingCart,
@@ -189,6 +189,5 @@ class UserAdminConfig(RecipeCountAdminMixin, UserAdmin):
     @admin.display(description='Подписчиков')
     def subscribers_count(self, user):
         return user.subscribers_count
-
 
 admin.site.unregister(Group)
