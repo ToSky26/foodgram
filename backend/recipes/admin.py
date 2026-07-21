@@ -190,4 +190,5 @@ class UserAdminConfig(RecipeCountAdminMixin, UserAdmin):
     def subscribers_count(self, user):
         return user.subscribers_count
 
+
 admin.site.unregister(Group)
