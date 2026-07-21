@@ -12,11 +12,12 @@ from .constants import (
     MINIMUM_INGREDIENT_AMOUNT,
     MAX_EMAIL_LENGTH,
     MAX_USENAMES_LENGTH,
+    USERNAME_REGEX
 )
 
 
 username_validator = RegexValidator(
-    regex=r'^[\w.@+-]+\Z',
+    regex=USERNAME_REGEX,
     message=(
         'Имя пользователя может содержать только буквы, цифры '
         'и символы @/./+/-/_.'
@@ -75,7 +76,7 @@ class Tag(models.Model):
     slug = models.SlugField(
         unique=True,
         max_length=TAG_NAME_SLUG_LENGTH,
-        verbose_name='Слаг'
+        verbose_name='Идентификатор'
     )
 
     class Meta:
@@ -116,6 +117,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
+        related_name='recipes',
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
@@ -160,6 +162,7 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
         verbose_name='Рецепт'
     )
     ingredient = models.ForeignKey(
@@ -186,67 +189,37 @@ class UserRecipeRelation(models.Model):
     user = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
+        related_name='%(class)s',
         verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='%(class)s',
         verbose_name='Рецепт'
     )
 
     class Meta:
         abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='%(class)s_unique',
+            )
+        ]
 
     def __str__(self):
         return f'{self.user} - {self.recipe}'
 
 
 class Favorite(UserRecipeRelation):
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name='favorite',
-        verbose_name='Пользователь'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='favorite',
-        verbose_name='Рецепт'
-    )
-
     class Meta(UserRecipeRelation.Meta):
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite'
-            )
-        ]
         verbose_name = 'избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
 
 
 class ShoppingCart(UserRecipeRelation):
-    user = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Пользователь'
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Рецепт'
-    )
-
     class Meta(UserRecipeRelation.Meta):
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_shopping_cart'
-            )
-        ]
         verbose_name = 'рецепт в корзине'
         verbose_name_plural = 'Рецепты в корзине'
 
@@ -261,7 +234,7 @@ class Subscription(models.Model):
     author = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
-        related_name='subscribers',
+        related_name='author_subscriptions',
         verbose_name='Автор',
     )
 

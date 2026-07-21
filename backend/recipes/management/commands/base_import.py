@@ -18,19 +18,10 @@ class BaseImportCommand(BaseCommand):
             )
 
             with fixture_path.open(encoding='utf-8') as file:
-                data = json.load(file)
-
-            objects = [
-                self.model(**row)
-                for row in data
-            ]
-
-            created = len(
-                self.model.objects.bulk_create(
-                    objects,
-                    ignore_conflicts=True,
-                )
-            )
+                created = len(
+                    self.model.objects.bulk_create(
+                        [self.model(**row) for row in json.load(file)],
+                        ignore_conflicts=True,))
 
             self.stdout.write(
                 self.style.SUCCESS(
@@ -41,5 +32,5 @@ class BaseImportCommand(BaseCommand):
 
         except Exception as error:
             self.stderr.write(
-                self.style.ERROR(str(error))
+                self.style.ERROR(f'{self.fixture_name}: {error}')
             )

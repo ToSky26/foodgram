@@ -1,8 +1,8 @@
 from django.db.models import (BooleanField, Exists, OuterRef, Sum, Value,)
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, serializers
 from rest_framework.decorators import action
@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-
 from api.filters import RecipeFilter, IngredientFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (AvatarSerializer, UserExtendedSerializer,
@@ -21,7 +20,7 @@ from api.serializers import (AvatarSerializer, UserExtendedSerializer,
                              RecipeShortReadSerializer, TagSerializer,
                              IngredientSerializer,)
 from recipes.models import (Subscription, Recipe, Tag, Ingredient,
-                            RecipeIngredient,)
+                            RecipeIngredient, Favorite)
 from recipes.services.shopping_cart import create_shopping_cart_text
 
 
@@ -115,7 +114,6 @@ class UserViewSet(DjoserUserViewSet):
 
 
 class RecipeViewSet(ModelViewSet):
-
     permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -160,37 +158,38 @@ class RecipeViewSet(ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    def handle_relation(self, relation_name, adding=False):
+    def handle_relation(self, model, adding=False):
         user = self.request.user
-        through = getattr(user, relation_name).model
-
-        relation = through.objects.filter(
-            user=user, recipe_id=self.kwargs['pk']
-        )
-
-        if not adding:
-            deleted, _ = relation.delete()
-            if not deleted:
-                raise serializers.ValidationError('Рецепт не найден в списке')
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        if relation.exists():
-            raise serializers.ValidationError(
-                f'Рецепт уже добавлен в {relation_name}')
-
-        through.objects.create(user=user, recipe_id=self.kwargs['pk'])
         recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
-        serializer = RecipeShortReadSerializer(recipe)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if adding:
+            relation, created = model.objects.get_or_create(
+                user=user, recipe=recipe,)
+            if not created:
+                relation_name = ('избранное' if model is Favorite
+                                 else 'список покупок')
+                raise serializers.ValidationError(
+                    f'Рецепт "{recipe.name}" уже добавлен в {relation_name}.')
+            return Response(RecipeShortReadSerializer(
+                recipe, context={'request': self.request},),
+                status=status.HTTP_201_CREATED)
+
+        deleted, _ = model.objects.filter(user=user, recipe=recipe,).delete()
+
+        if not deleted:
+            relation_name = ('избранном' if model is Favorite
+                             else 'списке покупок')
+            raise serializers.ValidationError(
+                f'Рецепт "{recipe.name}" отсутствует в {relation_name}.')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], url_path='favorite')
     def favorite(self, request, pk=None):
-        return self.handle_relation('favorite', pk, True)
+        return self.handle_relation(Favorite, pk, True)
 
     @favorite.mapping.delete
     def favorite_delete(self, request, pk=None):
-        return self.handle_relation('favorite', pk)
+        return self.handle_relation(Favorite, pk)
 
     @action(detail=True, methods=['post'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
@@ -207,42 +206,33 @@ class RecipeViewSet(ModelViewSet):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit',
-        ).annotate(
-            amount=Sum('amount')
-        ).order_by('ingredient__name')
+        ).annotate(amount=Sum('amount')).order_by('ingredient__name')
 
         recipes = Recipe.objects.filter(
             shopping_cart__user=request.user
-        ).select_related(
-            'author'
-        ).prefetch_related('tags')
+        ).select_related('author').prefetch_related('tags')
 
-        shopping_cart_text = create_shopping_cart_text(ingredients, recipes)
-
-        return FileResponse(shopping_cart_text, as_attachment=True,
-                            filename='shopping_cart.txt')
+        return FileResponse(create_shopping_cart_text(ingredients, recipes),
+                            as_attachment=True, filename='shopping_cart.txt')
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        short_link = get_object_or_404(
-            Recipe.objects.values_list('short_link', flat=True), pk=pk)
+        if not Recipe.objects.filter(pk=pk).exists():
+            raise serializers.ValidationError('Рецепт не найден.')
 
         return Response({'short-link': request.build_absolute_uri(
-                        reverse('short-link', kwargs={'short_link': short_link}
-                                ))})
+            reverse('short-link', args=[pk]))})
 
 
 class TagViewSet(ReadOnlyModelViewSet):
     serializer_class = TagSerializer
     pagination_class = None
     queryset = Tag.objects.all()
-    http_method_names = ['get', ]
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     pagination_class = None
     queryset = Ingredient.objects.all()
-    http_method_names = ['get', ]
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = IngredientFilter

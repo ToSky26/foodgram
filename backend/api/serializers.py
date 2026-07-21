@@ -50,7 +50,6 @@ class UserExtendedSerializer(UserSerializer):
     def get_recipes(self, user):
         request = self.context.get('request')
         recipes = user.recipes.all()
-
         if request is not None:
             recipes_limit = request.query_params.get('recipes_limit')
             if recipes_limit:
@@ -94,11 +93,11 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit', read_only=True
     )
-    amount = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = RecipeIngredient
         fields = ['id', 'name', 'measurement_unit', 'amount']
+        read_only_fields = fields
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -153,36 +152,29 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def set_ingredients(self, recipe, ingredients):
         RecipeIngredient.objects.bulk_create(
-            [
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=item['ingredient'],
-                    amount=item['amount']
-                )
-                for item in ingredients
-            ]
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=item['ingredient'],
+                amount=item['amount']
+            )
+            for item in ingredients
         )
 
     @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = super().create({
-            **validated_data,
-            'author': self.context['request'].user
-        })
+        recipe = super().create(validated_data)
         recipe.tags.set(tags)
         self.set_ingredients(recipe, ingredients)
         return recipe
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
         instance.tags.clear()
-        instance.tags.set(tags)
+        instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
-        self.set_ingredients(instance, ingredients)
+        self.set_ingredients(instance, validated_data.pop('ingredients'))
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):

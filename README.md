@@ -132,16 +132,6 @@ python manage.py runserver
 USE_SQLITE=True — для SQLit
 USE_SQLITE=False — для PostgreSQL
 
-### Команды разработки
-## Создание миграций:
-```bash
-python manage.py makemigrations
-```
-
-## Применение миграций:
-```bash
-python manage.py migrate
-```
 
 ## Автор 
 **ФИО:** Сакаева Александра Фархадовна

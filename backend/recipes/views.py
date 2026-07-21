@@ -1,17 +1,11 @@
+from django.http import Http404
 from django.shortcuts import redirect
 
 from .models import Recipe
 
 
 def short_link_redirect(request, recipe_id):
-    recipe_pk = (
-        Recipe.objects
-        .filter(short_link=recipe_id)
-        .values_list('id', flat=True)
-        .first()
-    )
-
-    if not recipe_pk:
-        return redirect('/404')
+    if not Recipe.objects.filter(pk=recipe_id).exists():
+        raise Http404(f'Рецепт с id={recipe_id} не найден.')
 
     return redirect(f'/recipes/{recipe_id}/')
