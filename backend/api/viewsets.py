@@ -20,7 +20,7 @@ from api.serializers import (AvatarSerializer, UserExtendedSerializer,
                              RecipeShortReadSerializer, TagSerializer,
                              IngredientSerializer,)
 from recipes.models import (Subscription, Recipe, Tag, Ingredient,
-                            RecipeIngredient, Favorite, ShoppingCart)
+                            RecipeIngredient, Favorite, ShoppingCart, User)
 from recipes.services.shopping_cart import create_shopping_cart_text
 
 
@@ -108,9 +108,18 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscriptions(self, request):
-        return self.get_paginated_response(UserExtendedSerializer(
-            self.paginate_queryset(self.request.user.subscriptions.all()),
-            many=True, context={'request': request}).data)
+        authors = request.user.subscriptions.values_list(
+            'author',
+            flat=True
+        )
+        queryset = User.objects.filter(id__in=authors)
+        page = self.paginate_queryset(queryset)
+        serializer = UserExtendedSerializer(
+            page,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -186,7 +195,7 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
-        return self.handle_relation(ShoppingCart)
+        return self.handle_relation(ShoppingCart, True)
 
     @shopping_cart.mapping.delete
     def shopping_cart_delete(self, request, pk=None):
