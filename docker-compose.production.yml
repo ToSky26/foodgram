@@ -30,7 +30,7 @@ services:
       - "8000:8000"
     volumes: 
       - static:/app/static
-      - media:/app/media
+      - media:/media
 
   nginx:
     depends_on:
@@ -40,7 +40,9 @@ services:
     image: tosky26/foodgram_gateway:latest
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - static:/static
       - media:/media
       - ./docs/:/usr/share/nginx/html/api/docs/
+      - /etc/letsencrypt:/etc/letsencrypt:ro
