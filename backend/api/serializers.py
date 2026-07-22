@@ -132,14 +132,20 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
         return image
 
-    def validate_unique_items(self, items, field_name, key=None):
-        values = [
-            item.get(key) if isinstance(item, dict) else item
-            for item in items
+    def validate_unique_items(self, items, field_name):
+        values = []
+
+        for item in items:
+            if 'ingredient' in item:
+                values.append(item['ingredient'].id)
+            else:
+                values.append(item.id)
+
+        duplicates = [
+            item for item, count in Counter(values).items()
+            if count > 1
         ]
 
-        duplicates = [item for item, count in Counter(values).items()
-                      if count > 1]
         if duplicates:
             raise serializers.ValidationError({
                 field_name: f'Повторения: {duplicates}'
@@ -159,7 +165,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                     field: 'Поле не может быть пустым'
                 })
 
-        self.validate_unique_items(data['ingredients'], 'ingredients', 'id')
+        self.validate_unique_items(data['ingredients'], 'ingredients')
         self.validate_unique_items(data['tags'], 'tags')
         return data
 
