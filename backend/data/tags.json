@@ -24,51 +24,7 @@
         "slug": "appetizer"
     },
     {
-        "name": "Гарнир",
-        "slug": "side-dish"
-    },
-    {
-        "name": "Основное блюдо",
-        "slug": "main-course"
-    },
-    {
-        "name": "Напиток",
-        "slug": "drink"
-    },
-    {
-        "name": "Выпечка",
-        "slug": "bakery"
-    },
-    {
-        "name": "Печенье",
-        "slug": "cookies"
-    },
-    {
         "name": "Десерт",
         "slug": "dessert"
-    },
-    {
-        "name": "Торт",
-        "slug": "cake"
-    },
-    {
-        "name": "Пирог",
-        "slug": "pie"
-    },
-    {
-        "name": "Пицца",
-        "slug": "pizza"
-    },
-    {
-        "name": "Паста",
-        "slug": "pasta"
-    },
-    {
-        "name": "Соус",
-        "slug": "sauce"
-    },
-    {
-        "name": "Вегетарианское",
-        "slug": "vegetarian"
     }
 ]
