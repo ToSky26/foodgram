@@ -144,7 +144,7 @@ class RecipeViewSet(ModelViewSet):
 
         return queryset.annotate(
             is_favorited=Exists(
-                user.favorite.filter(
+                user.favorites.filter(
                     recipe_id=OuterRef('id'))
             ),
             is_in_shopping_cart=Exists(

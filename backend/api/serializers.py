@@ -100,8 +100,19 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ['id', 'amount']
+
+
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientReadSerializer(many=True)
+    ingredients = RecipeIngredientWriteSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all())
     image = Base64ImageField()
@@ -122,8 +133,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return image
 
     def validate_unique_items(self, items, field_name, key=None):
-        values = [item[key] if key else item
-                  for item in items]
+        values = [
+            item.get(key) if isinstance(item, dict) else item
+            for item in items
+        ]
 
         duplicates = [item for item, count in Counter(values).items()
                       if count > 1]
@@ -154,7 +167,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         RecipeIngredient.objects.bulk_create(
             RecipeIngredient(
                 recipe=recipe,
-                ingredient=item['ingredient'],
+                ingredient=item['id'],
                 amount=item['amount']
             )
             for item in ingredients
