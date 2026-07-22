@@ -94,12 +94,12 @@ class UserViewSet(DjoserUserViewSet):
         url_path='subscribe',
         permission_classes=[IsAuthenticated],
     )
-    def subscribe(self, request, pk=None):
-        return self.handle_relation(pk, True)
+    def subscribe(self, request, id=None):
+        return self.handle_relation(id, True)
 
     @subscribe.mapping.delete
-    def subscribe_delete(self, request, pk=None):
-        return self.handle_relation(pk, False)
+    def subscribe_delete(self, request, id=None):
+        return self.handle_relation(id, False)
 
     @action(
         detail=False,
@@ -179,7 +179,7 @@ class RecipeViewSet(ModelViewSet):
                 raise serializers.ValidationError(
                     f'Рецепт "{recipe.name}" уже добавлен в {relation_name}.')
             return Response(RecipeShortReadSerializer(
-                recipe, context={'request': self.request},),
+                recipe, context={'request': self.request},).data,
                 status=status.HTTP_201_CREATED)
 
         get_object_or_404(model, user=user, recipe=recipe,).delete()
