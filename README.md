@@ -71,7 +71,7 @@ docker compose -f docker-compose.production.yml exec backend python manage.py lo
 [Foodgram](https://toskyfoodgram.hopto.org)
 
 Документация API:
-[API документация](https://toskyfoodgram.hopto.org/api/docs/)
+[API документация](https://toskyfoodgram.hopto.org/api/)
 
 Административная панель:
 [Админка](https://toskyfoodgram.hopto.org/admin/)
