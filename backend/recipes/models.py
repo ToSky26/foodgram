@@ -183,6 +183,8 @@ class RecipeIngredient(models.Model):
                 name='unique_recipe_ingredient'
             )
         ]
+        verbose_name = 'ингредиент рецепта'
+        verbose_name_plural = 'Ингридиенты рецепта'
 
 
 class UserRecipeRelation(models.Model):
@@ -239,6 +241,8 @@ class Subscription(models.Model):
     )
 
     class Meta:
+        verbose_name = 'подписчик'
+        verbose_name_plural = 'Подписчики'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'author'),
