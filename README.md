@@ -1,5 +1,5 @@
 # Foodgram
-[Foodgram](http://toskyfoodgram.hopto.org)
+[Foodgram](https://toskyfoodgram.hopto.org)
 
 ## Описание
 Foodgram — это веб-сервис для публикации и хранения кулинарных рецептов.
@@ -68,13 +68,13 @@ docker compose -f docker-compose.production.yml exec backend python manage.py lo
 После успешного развертывания проект доступен:
 
 Главная страница сервера:
-[Foodgram](http://toskyfoodgram.hopto.org)
+[Foodgram](https://toskyfoodgram.hopto.org)
 
 Документация API:
-[API документация](http://toskyfoodgram.hopto.org/api/docs/)
+[API документация](https://toskyfoodgram.hopto.org/api/docs/)
 
 Административная панель:
-[Админка](http://toskyfoodgram.hopto.org/admin/)
+[Админка](https://toskyfoodgram.hopto.org/admin/)
 
 
 ## Локальное развертывание без Docker
