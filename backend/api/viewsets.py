@@ -20,7 +20,7 @@ from api.serializers import (AvatarSerializer, UserExtendedSerializer,
                              RecipeShortReadSerializer, TagSerializer,
                              IngredientSerializer,)
 from recipes.models import (Subscription, Recipe, Tag, Ingredient,
-                            RecipeIngredient, Favorite)
+                            RecipeIngredient, Favorite, ShoppingCart)
 from recipes.services.shopping_cart import create_shopping_cart_text
 
 
@@ -178,31 +178,31 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='favorite')
     def favorite(self, request, pk=None):
-        return self.handle_relation(Favorite, pk, True)
+        return self.handle_relation(Favorite, True)
 
     @favorite.mapping.delete
     def favorite_delete(self, request, pk=None):
-        return self.handle_relation(Favorite, pk)
+        return self.handle_relation(Favorite)
 
     @action(detail=True, methods=['post'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
-        return self.handle_relation('shopping_cart', pk, True)
+        return self.handle_relation(ShoppingCart)
 
     @shopping_cart.mapping.delete
     def shopping_cart_delete(self, request, pk=None):
-        return self.handle_relation('shopping_cart', pk)
+        return self.handle_relation(ShoppingCart)
 
     @action(detail=False, methods=['get'], url_path='download_shopping_cart')
     def download_shopping_cart(self, request):
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__shoppingcarts__user=request.user
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit',
         ).annotate(amount=Sum('amount')).order_by('ingredient__name')
 
         recipes = Recipe.objects.filter(
-            shopping_cart__user=request.user
+            shoppingcarts__user=request.user
         ).select_related('author').prefetch_related('tags')
 
         return FileResponse(create_shopping_cart_text(ingredients, recipes),
