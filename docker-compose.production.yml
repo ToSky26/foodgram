@@ -26,6 +26,8 @@ services:
     container_name: foodgram_back
     image: tosky26/foodgram_backend:latest
     env_file: .env
+    ports:
+      - "8000:8000"
     volumes: 
       - static:/app/static
       - media:/app/media
