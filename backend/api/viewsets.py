@@ -148,7 +148,7 @@ class RecipeViewSet(ModelViewSet):
                     recipe_id=OuterRef('id'))
             ),
             is_in_shopping_cart=Exists(
-                user.shopping_cart.filter(
+                user.shoppingcarts.filter(
                     recipe_id=OuterRef('id'))
             ),
         )

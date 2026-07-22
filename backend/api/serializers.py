@@ -175,9 +175,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        request = self.context.get('request')
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = super().create(validated_data)
+        recipe = Recipe.objects.create(
+            author=request.user,
+            **validated_data
+        )
         recipe.tags.set(tags)
         self.set_ingredients(recipe, ingredients)
         return recipe
@@ -186,8 +190,11 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.tags.clear()
         instance.tags.set(validated_data.pop('tags'))
-        instance.ingredients.clear()
-        self.set_ingredients(instance, validated_data.pop('ingredients'))
+        instance.recipe_ingredients.all().delete()
+        self.set_ingredients(
+            instance,
+            validated_data.pop('ingredients')
+        )
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
