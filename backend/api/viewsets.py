@@ -163,24 +163,17 @@ class RecipeViewSet(ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
 
         if adding:
-            relation, created = model.objects.get_or_create(
+            _, created = model.objects.get_or_create(
                 user=user, recipe=recipe,)
             if not created:
-                relation_name = ('избранное' if model is Favorite
-                                 else 'список покупок')
+                relation_name = model._meta.verbose_name_plural
                 raise serializers.ValidationError(
                     f'Рецепт "{recipe.name}" уже добавлен в {relation_name}.')
             return Response(RecipeShortReadSerializer(
                 recipe, context={'request': self.request},),
                 status=status.HTTP_201_CREATED)
 
-        deleted, _ = model.objects.filter(user=user, recipe=recipe,).delete()
-
-        if not deleted:
-            relation_name = ('избранном' if model is Favorite
-                             else 'списке покупок')
-            raise serializers.ValidationError(
-                f'Рецепт "{recipe.name}" отсутствует в {relation_name}.')
+        get_object_or_404(model, user=user, recipe=recipe,).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], url_path='favorite')
@@ -218,7 +211,9 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
         if not Recipe.objects.filter(pk=pk).exists():
-            raise serializers.ValidationError('Рецепт не найден.')
+            raise serializers.ValidationError(
+                'Рецепт "{recipe.name}" не найден.'
+            )
 
         return Response({'short-link': request.build_absolute_uri(
             reverse('short-link', args=[pk]))})

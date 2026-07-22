@@ -1,8 +1,11 @@
 from datetime import datetime
 
-INGREDIENT_TEMPLATE = ('{index}. {name} — {amount} {measurement_unit}')
+INGREDIENT_TEMPLATE = (
+    '{index}. {name} — количество: {amount};'
+    'единица измерения: {measurement_unit}'
+)
 
-RECIPE_TEMPLATE = ('{index} {name} {author} {tags}')
+RECIPE_TEMPLATE = ('{index} {name} (@{author}) {tags}')
 
 
 def create_shopping_cart_text(ingredients, recipes):
@@ -28,7 +31,7 @@ def create_shopping_cart_text(ingredients, recipes):
                 name=recipe.name,
                 author=recipe.author.username,
                 tags=', '.join(
-                    tag.name for tag in recipe.tags.all()
+                    f'#{tag.name}' for tag in recipe.tags.all()
                 ),
             )
             for index, recipe in enumerate(recipes, start=1)

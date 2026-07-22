@@ -20,13 +20,12 @@ class BaseImportCommand(BaseCommand):
             with fixture_path.open(encoding='utf-8') as file:
                 created = len(
                     self.model.objects.bulk_create(
-                        [self.model(**row) for row in json.load(file)],
+                        (self.model(**row) for row in json.load(file)),
                         ignore_conflicts=True,))
 
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'{self.fixture_name}: '
-                    f'добавлено {created} записей.'
+                    f'{self.fixture_name}: успешно импортировано ({created}).'
                 )
             )
 
