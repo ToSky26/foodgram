@@ -1,17 +1,26 @@
 from datetime import datetime
 
 INGREDIENT_TEMPLATE = (
-    '{index}. {name} — количество: {amount};'
-    'единица измерения: {measurement_unit}'
+    '{index}. {name} ({measurement_unit}) — {amount}'
 )
 
 RECIPE_TEMPLATE = ('{index} {name} (@{author}) {tags}')
+MONTHS = ('', 'января', 'февраля', 'марта', 'апреля',
+          'мая', 'июня', 'июля', 'августа', 'сентября',
+          'октября', 'ноября', 'декабря',)
 
 
 def create_shopping_cart_text(ingredients, recipes):
+    today = datetime.now()
+    date = (
+        f'{today.day:02d} '
+        f'{MONTHS[today.month]} '
+        f'{today.year}'
+    )
     return '\n'.join([
         'Список покупок',
-        f'Дата составления: {datetime.now():%d.%m.%Y}',
+        f'Дата составления: {date}',
+
         '',
         'Продукты:',
         *[

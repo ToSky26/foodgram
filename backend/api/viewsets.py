@@ -23,6 +23,7 @@ from api.serializers import (AvatarSerializer, UserExtendedSerializer,
 from recipes.models import (Subscription, Recipe, Tag, Ingredient,
                             RecipeIngredient, Favorite, ShoppingCart, User)
 from recipes.services.shopping_cart import create_shopping_cart_text
+from recipes.utils import encode_recipe_id
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -110,21 +111,20 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscriptions(self, request):
         authors = User.objects.filter(
-            id__in=request.user.subscriptions.values_list(
-                'author',
-                flat=True
-            )
+            author_subscriptions__user=request.user
         ).annotate(
             recipes_count=Count('recipes')
         )
 
-        return self.get_paginated_response(
-            UserExtendedSerializer(
-                authors,
-                many=True,
-                context={'request': request}
-            ).data
+        page = self.paginate_queryset(authors)
+
+        serializer = UserExtendedSerializer(
+            page,
+            many=True,
+            context={'request': request},
         )
+
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -229,10 +229,23 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        if not Recipe.objects.filter(pk=pk).exists():
-            raise Http404
-        return Response({'short-link': request.build_absolute_uri(
-            reverse('short-link', args=[pk]))})
+        recipe = get_object_or_404(
+            Recipe,
+            pk=pk
+        )
+
+        short_code = encode_recipe_id(recipe.id)
+
+        return Response(
+            {
+                'short-link': request.build_absolute_uri(
+                    reverse(
+                        'short-link',
+                        args=[short_code]
+                    )
+                )
+            }
+        )
 
 
 class TagViewSet(ReadOnlyModelViewSet):

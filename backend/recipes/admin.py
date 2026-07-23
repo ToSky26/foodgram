@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.db.models import Count
-from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from .models import (Recipe, Tag, Ingredient, RecipeIngredient, ShoppingCart,
@@ -26,12 +25,13 @@ class HasRelatedFilter(admin.SimpleListFilter):
     title = 'Есть'
     parameter_name = 'has_related'
     relation_field = None
+    LOOKUPS = (
+        ('yes', 'Да'),
+        ('no', 'Нет'),
+    )
 
     def lookups(self, request, model_admin):
-        return (
-            ('yes', 'Да'),
-            ('no', 'Нет'),
-        )
+        return self.LOOKUPS
 
     def queryset(self, request, queryset):
         if not self.value():
@@ -95,6 +95,12 @@ class RecipeIngredientInline(admin.TabularInline):
     readonly_fields = ('measurement_unit',)
     fields = ('ingredient', 'measurement_unit', 'amount')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name == 'ingredient':
+            field.widget.attrs.update({'onchange': ('this.form.submit();')})
+        return field
+
     @admin.display(description='Ед. изм.')
     def measurement_unit(self, obj):
         if obj.ingredient:
@@ -114,36 +120,11 @@ class CookingTimeFilter(admin.SimpleListFilter):
     }
 
     def lookups(self, request, model_admin):
-        queryset = model_admin.get_queryset(request)
-        fast_count = queryset.filter(
-            cooking_time__lt=self.FAST_TIME
-        ).count()
-
-        medium_count = queryset.filter(
-            cooking_time__range=(
-                self.FAST_TIME,
-                self.LONG_TIME,
-            )
-        ).count()
-
-        long_count = queryset.filter(
-            cooking_time__gt=self.LONG_TIME
-        ).count()
-
         return (
-            (
-                'fast',
-                f'Меньше {self.FAST_TIME} минут ({fast_count})'
-            ),
-            (
-                'medium',
-                f'От {self.FAST_TIME} до {self.LONG_TIME} минут '
-                f'({medium_count})'
-            ),
-            (
-                'long',
-                f'Дольше {self.LONG_TIME} минут ({long_count})'
-            ),
+            ('fast', f'Меньше {self.FAST_TIME} минут'),
+            ('medium',
+             f'От {self.FAST_TIME} до {self.LONG_TIME} минут включительно'),
+            ('long', f'Дольше {self.LONG_TIME} минут'),
         )
 
     def queryset(self, request, recipes):
@@ -186,7 +167,7 @@ class RecipeAdmin(admin.ModelAdmin):
             )
         )
 
-    @admin.display(description='Время (мин)')
+    @admin.display(description=mark_safe('Время<br>(мин)'))
     def cooking_time_display(self, obj):
         return obj.cooking_time
 
@@ -196,7 +177,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Ингредиенты')
     def ingredients_list(self, recipe):
-        return format_html(
+        return mark_safe(
             '<br>'.join(
                 f'{item.ingredient.name} — '
                 f'{item.amount} '
@@ -205,7 +186,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Теги')
     def tags_list(self, recipe):
-        return format_html(
+        return mark_safe(
             '<br>'.join(
                 tag.name
                 for tag in recipe.tags.all()))
@@ -213,10 +194,8 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Картинка')
     def image_preview(self, obj):
         if obj.image:
-            return format_html(
-                '<img src="{}" width="100" height="100">',
-                obj.image.url,
-            )
+            return mark_safe(
+                f'<img src="{obj.image.url}" width="100" height="100">')
         return '-'
 
 
@@ -287,11 +266,10 @@ class UserAdminConfig(RecipeCountAdminMixin, UserAdmin):
         return f'{user.first_name} {user.last_name}'.strip()
 
     @admin.display(description='Аватар')
-    @mark_safe
     def avatar_preview(self, user):
         if not user.avatar:
             return '—'
-        return (
+        return mark_safe(
             f'<img src="{user.avatar.url}" '
             'width="50" height="50" '
             'style="border-radius:50%;">'

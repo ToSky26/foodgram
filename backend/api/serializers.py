@@ -6,7 +6,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from recipes.constants import (MINIMUM_RECIPE_COOKING_TIME,
-                               MIN_INGREDIENT_AMOUNT)
+                               MINIMUM_INGREDIENT_AMOUNT)
 
 from recipes.models import (Subscription, Tag, Recipe,
                             RecipeIngredient, Ingredient)
@@ -106,7 +106,7 @@ class RecipeIngredientWriteSerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
         source='ingredient')
-    amount = serializers.IntegerField(min_value=MIN_INGREDIENT_AMOUNT)
+    amount = serializers.IntegerField(min_value=MINIMUM_INGREDIENT_AMOUNT)
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
