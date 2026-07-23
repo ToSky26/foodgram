@@ -117,7 +117,7 @@ class CookingTimeFilter(admin.SimpleListFilter):
         queryset = model_admin.get_queryset(request)
         fast_count = queryset.filter(
             cooking_time__lt=self.FAST_TIME
-            ).count()
+        ).count()
 
         medium_count = queryset.filter(
             cooking_time__range=(
