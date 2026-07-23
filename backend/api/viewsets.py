@@ -1,5 +1,5 @@
-from django.db.models import (BooleanField, Exists, OuterRef, Sum, Value,)
-from django.http import FileResponse
+from django.db.models import (BooleanField, Exists, OuterRef, Sum, Value, Count)
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -108,14 +108,22 @@ class UserViewSet(DjoserUserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscriptions(self, request):
-        authors = request.user.subscriptions.values_list(
-            'author',
-            flat=True
+        authors = User.objects.filter(
+            id__in=request.user.subscriptions.values_list(
+                'author',
+                flat=True
+            )
+        ).annotate(
+            recipes_count=Count('recipes')
         )
-        queryset = User.objects.filter(id__in=authors)
-        return self.get_paginated_response(UserExtendedSerializer(
-            self.paginate_queryset(queryset), many=True,
-            context={'request': request}).data)
+
+        return self.get_paginated_response(
+            UserExtendedSerializer(
+                authors,
+                many=True,
+                context={'request': request}
+            ).data
+        )
 
 
 class RecipeViewSet(ModelViewSet):
@@ -162,6 +170,9 @@ class RecipeViewSet(ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     def handle_relation(self, model, adding=False):
         user = self.request.user
@@ -217,9 +228,10 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        recipe = self.get_object()
+        if not Recipe.objects.filter(pk=pk).exists():
+            raise Http404
         return Response({'short-link': request.build_absolute_uri(
-            reverse('short-link', args=[recipe.pk]))})
+            reverse('short-link', args=[pk]))})
 
 
 class TagViewSet(ReadOnlyModelViewSet):

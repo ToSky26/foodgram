@@ -5,7 +5,9 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.constants import MINIMUM_RECIPE_COOKING_TIME
+from recipes.constants import (MINIMUM_RECIPE_COOKING_TIME,
+                               MIN_INGREDIENT_AMOUNT)
+
 from recipes.models import (Subscription, Tag, Recipe,
                             RecipeIngredient, Ingredient)
 from recipes.models import User
@@ -104,7 +106,7 @@ class RecipeIngredientWriteSerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
         source='ingredient')
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(min_value=MIN_INGREDIENT_AMOUNT)
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -185,10 +187,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        validated_data['author'] = self.context['request'].user
         recipe = super().create(validated_data)
         recipe.tags.set(tags)
-        self.create_recipe_ingredients(recipe, ingredients)
+        self.set_ingredients(recipe, ingredients)
         return recipe
 
     @transaction.atomic

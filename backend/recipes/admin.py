@@ -22,12 +22,61 @@ class RecipeCountAdminMixin:
         return instance.recipe_count
 
 
+class HasRelatedFilter(admin.SimpleListFilter):
+    title = 'Есть'
+    parameter_name = 'has_related'
+    relation_field = None
+
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', 'Да'),
+            ('no', 'Нет'),
+        )
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        lookup = {
+            'yes': False,
+            'no': True,
+        }[self.value()]
+
+        return queryset.filter(
+            **{f'{self.relation_field}__isnull': lookup}
+        ).distinct()
+
+
+class UserHasRecipesFilter(HasRelatedFilter):
+    title = 'Есть рецепты'
+    parameter_name = 'has_recipes'
+    relation_field = 'recipes'
+
+
+class UserHasSubscriptionsFilter(HasRelatedFilter):
+    title = 'Есть подписки'
+    parameter_name = 'has_subscriptions'
+    relation_field = 'subscriptions'
+
+
+class UserHasSubscribersFilter(HasRelatedFilter):
+    title = 'Есть подписчики'
+    parameter_name = 'has_subscribers'
+    relation_field = 'author_subscriptions'
+
+
+class IngredientHasRecipesFilter(HasRelatedFilter):
+    title = 'Есть в рецептах'
+    parameter_name = 'has_recipes'
+    relation_field = 'recipes'
+
+
 @admin.register(Ingredient)
 class IngredientAdmin(RecipeCountAdminMixin, admin.ModelAdmin):
     list_display = ('id', 'name', 'measurement_unit',
                     *RecipeCountAdminMixin.recipe_count_display,)
     search_fields = ('name', 'measurement_unit',)
-    list_filter = ('measurement_unit',)
+    list_filter = ('measurement_unit', IngredientHasRecipesFilter,)
 
 
 @admin.register(Tag)
@@ -43,6 +92,14 @@ class RecipeIngredientInline(admin.TabularInline):
     autocomplete_fields = ('ingredient',)
     extra = 1
     min_num = 1
+    readonly_fields = ('measurement_unit',)
+    fields = ('ingredient', 'measurement_unit', 'amount')
+
+    @admin.display(description='Ед. изм.')
+    def measurement_unit(self, obj):
+        if obj.ingredient:
+            return obj.ingredient.measurement_unit
+        return '-'
 
 
 class CookingTimeFilter(admin.SimpleListFilter):
@@ -57,11 +114,26 @@ class CookingTimeFilter(admin.SimpleListFilter):
     }
 
     def lookups(self, request, model_admin):
+        queryset = model_admin.get_queryset(request)
         return (
-            ('fast', f'До {self.FAST_TIME} минут'),
-            ('medium',
-             f'От {self.FAST_TIME} до {self.LONG_TIME} минут включительно'),
-            ('long', f'Дольше {self.LONG_TIME} минут'),
+            (
+                'fast',
+                f'Меньше {self.FAST_TIME} минут '
+                f'({queryset.filter(cooking_time__lt=self.FAST_TIME).count()})'
+            ),
+            (
+                'medium',
+                f'От {self.FAST_TIME} до {self.LONG_TIME} минут '
+                f'({queryset.filter(cooking_time__range=(
+                    self.FAST_TIME,
+                    self.LONG_TIME
+                )).count()})'
+            ),
+            (
+                'long',
+                f'Дольше {self.LONG_TIME} минут '
+                f'({queryset.filter(cooking_time__gt=self.LONG_TIME).count()})'
+            ),
         )
 
     def queryset(self, request, recipes):
@@ -77,13 +149,16 @@ class CookingTimeFilter(admin.SimpleListFilter):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline,)
-    list_display = ('id', 'name', 'cooking_time', 'author', 'favorites_count',
-                    'ingredients_list', 'tags_list', 'image_preview',)
+    fields = ('name', 'author', 'tags', 'text', 'cooking_time',
+              ('image', 'image_preview'),)
+    list_display = ('id', 'name', 'cooking_time_display', 'author',
+                    'favorites_count', 'ingredients_list', 'tags_list',
+                    'image_preview',)
     search_fields = ('name', 'author_first_name',
                      'author_last_name', 'author_username')
     list_filter = ('author', 'tags', CookingTimeFilter,)
 
-    readonly_fields = ('favorites_count',)
+    readonly_fields = ('favorites_count', 'image_preview',)
 
     def get_queryset(self, request):
         return (
@@ -100,6 +175,10 @@ class RecipeAdmin(admin.ModelAdmin):
                 'tags',
             )
         )
+
+    @admin.display(description='Время (мин)')
+    def cooking_time_display(self, obj):
+        return obj.cooking_time
 
     @admin.display(description='В избранном')
     def favorites_count(self, recipe):
@@ -123,7 +202,12 @@ class RecipeAdmin(admin.ModelAdmin):
 
     @admin.display(description='Картинка')
     def image_preview(self, obj):
-        return obj.image.url if obj.image else '-'
+        if obj.image:
+            return format_html(
+                '<img src="{}" width="100" height="100">',
+                obj.image.url,
+            )
+        return '-'
 
 
 @admin.register(RecipeIngredient)
@@ -155,11 +239,28 @@ class UserAdminConfig(RecipeCountAdminMixin, UserAdmin):
     list_display = ('id', 'username', 'full_name', 'email', 'avatar_preview',
                     'recipe_count', 'subscriptions_count',
                     'subscribers_count',)
+    list_filter = (UserHasRecipesFilter, UserHasSubscriptionsFilter,
+                   UserHasSubscribersFilter,)
 
     search_fields = ('username', 'email', 'first_name', 'last_name',)
 
     readonly_fields = ('avatar_preview', 'recipe_count', 'subscriptions_count',
                        'subscribers_count',)
+
+    fieldsets = UserAdmin.fieldsets + (
+        (
+            'Дополнительно',
+            {
+                'fields': (
+                    'avatar',
+                    'avatar_preview',
+                    'recipe_count',
+                    'subscriptions_count',
+                    'subscribers_count',
+                ),
+            },
+        ),
+    )
 
     def get_queryset(self, request):
         return (

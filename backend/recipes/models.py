@@ -106,8 +106,8 @@ class Ingredient(models.Model):
                 name='unique_ingredient'
             )
         ]
-        verbose_name = 'Продукт'
-        verbose_name_plural = 'Продукты'
+        verbose_name = 'ингредиент'
+        verbose_name_plural = 'ингредиенты'
 
     def __str__(self):
         return self.name
@@ -142,7 +142,7 @@ class Recipe(models.Model):
         get_user_model(),
         on_delete=models.CASCADE,
         related_name='recipes',
-        verbose_name='Автор рецепта'
+        verbose_name='Автор'
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -184,7 +184,7 @@ class RecipeIngredient(models.Model):
             )
         ]
         verbose_name = 'ингредиент рецепта'
-        verbose_name_plural = 'Ингридиенты рецепта'
+        verbose_name_plural = 'Ингредиенты рецепта'
 
 
 class UserRecipeRelation(models.Model):
