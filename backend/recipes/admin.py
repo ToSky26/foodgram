@@ -95,12 +95,6 @@ class RecipeIngredientInline(admin.TabularInline):
     readonly_fields = ('measurement_unit',)
     fields = ('ingredient', 'measurement_unit', 'amount')
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
-        if db_field.name == 'ingredient':
-            field.widget.attrs.update({'onchange': ('this.form.submit();')})
-        return field
-
     @admin.display(description='Ед. изм.')
     def measurement_unit(self, obj):
         if obj.ingredient:
