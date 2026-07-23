@@ -115,24 +115,34 @@ class CookingTimeFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         queryset = model_admin.get_queryset(request)
+        fast_count = queryset.filter(
+            cooking_time__lt=self.FAST_TIME
+            ).count()
+
+        medium_count = queryset.filter(
+            cooking_time__range=(
+                self.FAST_TIME,
+                self.LONG_TIME,
+            )
+        ).count()
+
+        long_count = queryset.filter(
+            cooking_time__gt=self.LONG_TIME
+        ).count()
+
         return (
             (
                 'fast',
-                f'Меньше {self.FAST_TIME} минут '
-                f'({queryset.filter(cooking_time__lt=self.FAST_TIME).count()})'
+                f'Меньше {self.FAST_TIME} минут ({fast_count})'
             ),
             (
                 'medium',
                 f'От {self.FAST_TIME} до {self.LONG_TIME} минут '
-                f'({queryset.filter(cooking_time__range=(
-                    self.FAST_TIME,
-                    self.LONG_TIME
-                )).count()})'
+                f'({medium_count})'
             ),
             (
                 'long',
-                f'Дольше {self.LONG_TIME} минут '
-                f'({queryset.filter(cooking_time__gt=self.LONG_TIME).count()})'
+                f'Дольше {self.LONG_TIME} минут ({long_count})'
             ),
         )
 
