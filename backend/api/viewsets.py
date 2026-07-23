@@ -1,14 +1,14 @@
 from django.db.models import (BooleanField, Exists, OuterRef, Sum, Value,)
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAuthenticatedOrReadOnly,
+                                        SAFE_METHODS)
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -113,13 +113,9 @@ class UserViewSet(DjoserUserViewSet):
             flat=True
         )
         queryset = User.objects.filter(id__in=authors)
-        page = self.paginate_queryset(queryset)
-        serializer = UserExtendedSerializer(
-            page,
-            many=True,
-            context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
+        return self.get_paginated_response(UserExtendedSerializer(
+            self.paginate_queryset(queryset), many=True,
+            context={'request': request}).data)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -163,27 +159,29 @@ class RecipeViewSet(ModelViewSet):
         )
 
     def get_serializer_class(self):
-        if self.request.method in ('GET', 'HEAD', 'OPTIONS',):
+        if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
     def handle_relation(self, model, adding=False):
         user = self.request.user
-        recipe = get_object_or_404(Recipe, pk=self.kwargs['pk'])
+        if not adding:
+            get_object_or_404(model, user=user,
+                              recipe_id=self.kwargs['pk'],).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if adding:
-            _, created = model.objects.get_or_create(
-                user=user, recipe=recipe,)
-            if not created:
-                relation_name = model._meta.verbose_name_plural
-                raise serializers.ValidationError(
-                    f'Рецепт "{recipe.name}" уже добавлен в {relation_name}.')
-            return Response(RecipeShortReadSerializer(
-                recipe, context={'request': self.request},).data,
-                status=status.HTTP_201_CREATED)
+        recipe = self.get_object()
+        _, created = model.objects.get_or_create(user=user, recipe=recipe,)
+        if not created:
+            relation_name = model._meta.verbose_name_plural
+            raise serializers.ValidationError(
+                f'Рецепт "{recipe.name}" уже добавлен в {relation_name}.'
+            )
 
-        get_object_or_404(model, user=user, recipe=recipe,).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            RecipeShortReadSerializer(
+                recipe, context={'request': self.request},
+            ).data, status=status.HTTP_201_CREATED,)
 
     @action(detail=True, methods=['post'], url_path='favorite')
     def favorite(self, request, pk=None):
@@ -219,13 +217,9 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        if not Recipe.objects.filter(pk=pk).exists():
-            raise serializers.ValidationError(
-                'Рецепт "{recipe.name}" не найден.'
-            )
-
+        recipe = self.get_object()
         return Response({'short-link': request.build_absolute_uri(
-            reverse('short-link', args=[pk]))})
+            reverse('short-link', args=[recipe.pk]))})
 
 
 class TagViewSet(ReadOnlyModelViewSet):

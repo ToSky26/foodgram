@@ -15,7 +15,7 @@ class RecipeCountAdminMixin:
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
-            recipe_count=Count('recipes', distinct=True,))
+            recipe_count=Count('recipes'))
 
     @admin.display(description='Рецептов')
     def recipe_count(self, instance):
@@ -59,7 +59,8 @@ class CookingTimeFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             ('fast', f'До {self.FAST_TIME} минут'),
-            ('medium', f'От {self.FAST_TIME} до {self.LONG_TIME} минут',),
+            ('medium',
+             f'От {self.FAST_TIME} до {self.LONG_TIME} минут включительно'),
             ('long', f'Дольше {self.LONG_TIME} минут'),
         )
 

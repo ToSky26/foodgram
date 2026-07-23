@@ -100,15 +100,11 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+class RecipeIngredientWriteSerializer(serializers.Serializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
-        source='ingredient'
-    )
-
-    class Meta:
-        model = RecipeIngredient
-        fields = ['id', 'amount']
+        source='ingredient')
+    amount = serializers.IntegerField(min_value=1)
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -133,15 +129,11 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return image
 
     def validate_unique_items(self, items, field_name, key=None):
-        values = []
-
-        for item in items:
-            if key:
-                values.append(item[key].id)
-            elif hasattr(item, 'id'):
-                values.append(item.id)
-            else:
-                values.append(item)
+        if key:
+            values = [item[key].id for item in items]
+        else:
+            values = [item.id if hasattr(item, 'id')
+                      else item for item in items]
 
         duplicates = [
             item for item, count in Counter(values).items()
@@ -191,15 +183,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        request = self.context.get('request')
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(
-            author=request.user,
-            **validated_data
-        )
+        validated_data['author'] = self.context['request'].user
+        recipe = super().create(validated_data)
         recipe.tags.set(tags)
-        self.set_ingredients(recipe, ingredients)
+        self.create_recipe_ingredients(recipe, ingredients)
         return recipe
 
     @transaction.atomic

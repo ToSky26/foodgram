@@ -11,12 +11,14 @@ services:
     container_name: foodgram-db
     image: postgres:15
     env_file: .env
+    restart: always
     volumes:
       - pg_data:/var/lib/postgresql/data
 
   frontend:
     container_name: foodgram-front
     image: tosky26/foodgram_frontend:latest
+    restart: always
     volumes:
       - static:/app/result_build/
 
@@ -26,6 +28,7 @@ services:
     container_name: foodgram_back
     image: tosky26/foodgram_backend:latest
     env_file: .env
+    restart: always
     ports:
       - "8000:8000"
     volumes: 
@@ -38,6 +41,7 @@ services:
       - frontend
     container_name: foodgram-proxy
     image: tosky26/foodgram_gateway:latest
+    restart: always
     ports:
       - "80:80"
       - "443:443"
