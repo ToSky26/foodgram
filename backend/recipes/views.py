@@ -23,7 +23,7 @@ def short_link_redirect(request, short_code):
 
     return redirect(
         reverse(
-            'recipe-detail',
+            'recipes-detail',
             args=[recipe.id]
         )
     )
