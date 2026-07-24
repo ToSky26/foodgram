@@ -1,27 +1,14 @@
 from django.http import Http404
 from django.shortcuts import redirect
+from django.urls import reverse
 
 from .models import Recipe
 
 
 def short_link_redirect(request, recipe_id):
-
-    decoded_id = Recipe.decode_id(recipe_id)
-
-    if not Recipe.objects.filter(pk=decoded_id).exists():
-        raise Http404('Рецепт не найден.')
+    if not Recipe.objects.filter(pk=recipe_id).exists():
+        raise Http404(f'Рецепт с id={recipe_id} не найден.')
 
     return redirect(
-        f'/recipes/{recipe_id}/'
+        reverse('recipes-detail', args=[recipe_id])
     )
-
-
-# Добрый день, обращаюсь в такой форме, потому что коомуникация нарушена и вам
-# нельзя написать. Очень прошу пожалуста подскажите неиного, направьте что
-# изучить, чтобы выполнить ваши замечания. Вы видите, что я уже который раз
-# делаю и не получается, даже ии не может помочь. Добавление новых продуктов в
-# рецепт не работает! я не понимаю как это сделать, ии говорит, что сразу при
-# добавлении нового продукта нужен AJAX и никак по-другому. И что касается
-# короткой ссылки, вы хотите видеть int:recipe_id, но по тз Должен быть
-# /s/слово/. как это совместить. Прошу сжальтесь и подскажите
-# хоть немного в какую сторону смотреть
