@@ -23,7 +23,6 @@ from api.serializers import (AvatarSerializer, UserExtendedSerializer,
 from recipes.models import (Subscription, Recipe, Tag, Ingredient,
                             RecipeIngredient, Favorite, ShoppingCart, User)
 from recipes.services.shopping_cart import create_shopping_cart_text
-from recipes.utils import encode_recipe_id
 
 
 class UserViewSet(DjoserUserViewSet):
@@ -231,17 +230,11 @@ class RecipeViewSet(ModelViewSet):
     def get_link(self, request, pk=None):
         if not Recipe.objects.filter(pk=pk).exists():
             raise Http404(f'Рецепт с id={pk} не найден.')
-
-        return Response(
-            {
-                'short-link': request.build_absolute_uri(
-                    reverse(
-                        'short-link',
-                        args=[encode_recipe_id(int(pk))],
-                    )
-                )
-            }
-        )
+        return Response({
+            'short-link': request.build_absolute_uri(
+                reverse('short-link', args=[pk])
+            )
+        })
 
 
 class TagViewSet(ReadOnlyModelViewSet):
