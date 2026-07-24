@@ -1,6 +1,6 @@
 from django.db.models import (BooleanField, Exists, OuterRef,
                               Sum, Value, Count)
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -229,19 +229,15 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_link(self, request, pk=None):
-        recipe = get_object_or_404(
-            Recipe,
-            pk=pk
-        )
-
-        short_code = encode_recipe_id(recipe.id)
+        if not Recipe.objects.filter(pk=pk).exists():
+            raise Http404(f'Рецепт с id={pk} не найден.')
 
         return Response(
             {
                 'short-link': request.build_absolute_uri(
                     reverse(
                         'short-link',
-                        args=[short_code]
+                        args=[encode_recipe_id(int(pk))],
                     )
                 )
             }

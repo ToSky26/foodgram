@@ -114,11 +114,34 @@ class CookingTimeFilter(admin.SimpleListFilter):
     }
 
     def lookups(self, request, model_admin):
+        recipes = model_admin.get_queryset(request)
+
+        fast_count = recipes.filter(
+            cooking_time__range=self.TIME_RANGES['fast']
+        ).count()
+
+        medium_count = recipes.filter(
+            cooking_time__range=self.TIME_RANGES['medium']
+        ).count()
+
+        long_count = recipes.filter(
+            cooking_time__range=self.TIME_RANGES['long']
+        ).count()
+
         return (
-            ('fast', f'Меньше {self.FAST_TIME} минут'),
-            ('medium',
-             f'От {self.FAST_TIME} до {self.LONG_TIME} минут включительно'),
-            ('long', f'Дольше {self.LONG_TIME} минут'),
+            (
+                'fast',
+                f'Меньше {self.FAST_TIME} минут ({fast_count})'
+            ),
+            (
+                'medium',
+                f'От {self.FAST_TIME} до '
+                f'{self.LONG_TIME} минут ({medium_count})'
+            ),
+            (
+                'long',
+                f'Дольше {self.LONG_TIME} минут ({long_count})'
+            ),
         )
 
     def queryset(self, request, recipes):
@@ -189,7 +212,9 @@ class RecipeAdmin(admin.ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             return mark_safe(
-                f'<img src="{obj.image.url}" width="100" height="100">')
+                f'<img src="{obj.image.url}" '
+                'style="max-width:100px; max-height:100px;">'
+            )
         return '-'
 
 

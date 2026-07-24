@@ -1,29 +1,25 @@
 from django.http import Http404
 from django.shortcuts import redirect
-from django.urls import reverse
 
 from .models import Recipe
-from .utils import decode_recipe_id
 
 
-def short_link_redirect(request, short_code):
-    recipe_id = decode_recipe_id(short_code)
+def short_link_redirect(request, recipe_id):
 
-    if recipe_id is None:
-        raise Http404('Некорректная короткая ссылка.')
+    decoded_id = Recipe.decode_id(recipe_id)
 
-    recipe = Recipe.objects.filter(
-        id=recipe_id
-    ).first()
-
-    if recipe is None:
-        raise Http404(
-            f'Рецепт с id={recipe_id} не найден.'
-        )
+    if not Recipe.objects.filter(pk=decoded_id).exists():
+        raise Http404('Рецепт не найден.')
 
     return redirect(
-        reverse(
-            'recipes-detail',
-            args=[recipe.id]
-        )
+        f'/recipes/{recipe_id}/'
     )
+
+
+# Добрый день, обращаюсь в такой форме, потому что коомуникация нарушена и вам нельзя написать.
+# Очень прошу пожалуста подскажите неиного, направьте что изучить, чтобы выполнить ваши замечания.
+# Вы видите, что я уже который раз делаю и не получается, даже ии не может помочь. Добавление новых
+# продуктов в рецепт не работает! я не понимаю как это сделать, ии говорит, что сразу при добавлении
+# нового продукта нужен AJAX и никак по-другому. И что касается короткой ссылки, вы хотите видеть
+# int:recipe_id, но по тз Должен быть /s/слово/. как это совместить. Прошу сжальтесь и подскажите
+#хоть немного в какую сторону смотреть
