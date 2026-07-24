@@ -93,13 +93,7 @@ class RecipeIngredientInline(admin.TabularInline):
     extra = 1
     min_num = 1
     readonly_fields = ('measurement_unit',)
-    fields = ('ingredient', 'measurement_unit', 'amount')
-
-    @admin.display(description='Ед. изм.')
-    def measurement_unit(self, obj):
-        if obj.ingredient:
-            return obj.ingredient.measurement_unit
-        return '-'
+    fields = ('ingredient', 'amount')
 
 
 class CookingTimeFilter(admin.SimpleListFilter):
